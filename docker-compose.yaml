@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres:16
+    container_name: pinkscan-db
+    environment:
+      POSTGRES_USER: pinkscan
+      POSTGRES_PASSWORD: pinkscan
+      POSTGRES_DB: pinkscan
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
