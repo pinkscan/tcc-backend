@@ -1,0 +1,7 @@
+node_modules
+dist
+prisma/dev.db
+.git
+.gitignore
+Dockerfile
+pnpm-lock.yaml
