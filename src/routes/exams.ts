@@ -1,12 +1,17 @@
-import { Router } from "express";
+import { Router, Request } from "express";
+import type { Router as ExpressRouter } from "express";
 import { prisma } from "../prisma";
 import multer from "multer";
 import { authMiddleware } from "../middleware/auth";
 
 const upload = multer();
-const router = Router();
+const router: ExpressRouter = Router();
 
-router.post("/process", authMiddleware, upload.single("file"), async (req, res) => {
+interface AuthRequest extends Request {
+  userId?: string;
+}
+
+router.post("/process", authMiddleware, upload.single("file"), async (req: AuthRequest, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Nenhuma imagem enviada." });
@@ -16,7 +21,8 @@ router.post("/process", authMiddleware, upload.single("file"), async (req, res) 
 
     // monta form-data para enviar ao Python
     const formData = new FormData();
-    formData.append("file", new Blob([req.file.buffer]), req.file.originalname);
+    // convert Buffer to Uint8Array to satisfy BlobPart typing
+    formData.append("file", new Blob([new Uint8Array(req.file.buffer)]), req.file.originalname);
 
     const response = await fetch(fastApiUrl, {
       method: "POST",
@@ -28,6 +34,10 @@ router.post("/process", authMiddleware, upload.single("file"), async (req, res) 
     }
 
     const result = await response.json();
+
+    if (!req.userId) {
+      return res.status(401).json({ error: "Usuário não autenticado." });
+    }
 
     // salvar no banco
     const exam = await prisma.exam.create({

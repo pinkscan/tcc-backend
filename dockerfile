@@ -1,31 +1,29 @@
 # ---------- STAGE 1: build ----------
-FROM node:20-alpine AS build
+FROM node:20-bullseye AS build
 WORKDIR /app
 RUN corepack enable
 
 COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma
+COPY scripts ./scripts
 RUN pnpm install --frozen-lockfile
 
+# generate Prisma client now so types are available for the TypeScript build
+RUN npx prisma generate
+
+# copy remaining source files and build
 COPY . .
 
-# gera dist/
+# build TS
 RUN pnpm build
 
 # ---------- STAGE 2: runtime ----------
-FROM node:20-alpine
+FROM node:20-bullseye
 WORKDIR /app
-RUN corepack enable
 
-ENV NODE_ENV=production
-ENV PORT=4000
-
-# copia node_modules e dist do stage de build
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma ./prisma
 COPY package.json ./
 
-EXPOSE 4000
-
-# ATENÇÃO: migrations do Prisma você roda fora ou
-# adiciona um entrypoint chamando `prisma migrate deploy`
 CMD ["node", "dist/index.js"]

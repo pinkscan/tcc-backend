@@ -1,11 +1,12 @@
 import { Router } from "express";
+import type { Router as ExpressRouter } from "express";
 import { prisma } from "../prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { config } from "../config";
 import type { Request, Response } from "express";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Registro
 router.post("/register", async (req: Request, res: Response) => {

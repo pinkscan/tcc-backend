@@ -4,4 +4,3 @@ prisma/dev.db
 .git
 .gitignore
 Dockerfile
-pnpm-lock.yaml
